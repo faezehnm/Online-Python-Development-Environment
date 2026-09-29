@@ -408,7 +408,7 @@
             'turtle.forward()', 'turtle.backward()', 'turtle.right()', 'turtle.left()', 
             'turtle.goto()', 'turtle.circle()', 'turtle.color()', 'turtle.fillcolor()', 
             'turtle.bgcolor()', 'turtle.begin_fill()', 'turtle.end_fill()', 'turtle.penup()', 
-            'turtle.pendown()', 'turtle.width()', 'turtle.clear()', 'print()', 'input()', 'import turtle'
+            'turtle.pendown()', 'turtle.width()', 'turtle.clear()', 'turtle.shape()', 'print()', 'input()', 'import turtle'
         ];
 
         const textarea = document.getElementById('code');
@@ -501,7 +501,7 @@
             }
         });
 
-        updateLineNumbers(); // تنظیم اولیه شماره خطوط
+        updateLineNumbers(); 
 
         window.setSpeed = function(val) { turtleSpeed = val; };
         window.getTurtleSpeed = function() { return turtleSpeed; };
@@ -647,14 +647,31 @@
                         ctx.save();
                         ctx.translate(currentCx + cmd.x * zoomLevel, currentCy - cmd.y * zoomLevel);
                         ctx.rotate(-cmd.angle * Math.PI / 180);
-                        ctx.fillStyle = '#e84393';
-                        ctx.beginPath();
-                        ctx.moveTo(10 * zoomLevel, 0);
-                        ctx.lineTo(-6 * zoomLevel, -6 * zoomLevel);
-                        ctx.lineTo(-2 * zoomLevel, 0);
-                        ctx.lineTo(-6 * zoomLevel, 6 * zoomLevel);
-                        ctx.closePath();
-                        ctx.fill();
+                        
+                        if (cmd.shape === "turtle") {
+                            ctx.fillStyle = '#00b894';
+                            // رسم بدن
+                            ctx.beginPath(); ctx.ellipse(0, 0, 8 * zoomLevel, 10 * zoomLevel, 0, 0, 2 * Math.PI); ctx.fill();
+                            // رسم سر
+                            ctx.beginPath(); ctx.arc(10 * zoomLevel, 0, 4.5 * zoomLevel, 0, 2 * Math.PI); ctx.fill();
+                            // رسم دست و پاها
+                            ctx.beginPath();
+                            ctx.arc(4 * zoomLevel, -9 * zoomLevel, 3 * zoomLevel, 0, 2 * Math.PI);
+                            ctx.arc(4 * zoomLevel, 9 * zoomLevel, 3 * zoomLevel, 0, 2 * Math.PI);
+                            ctx.arc(-6 * zoomLevel, -8 * zoomLevel, 3 * zoomLevel, 0, 2 * Math.PI);
+                            ctx.arc(-6 * zoomLevel, 8 * zoomLevel, 3 * zoomLevel, 0, 2 * Math.PI);
+                            ctx.fill();
+                        } else {
+                            // رسم فلش پیش‌فرض
+                            ctx.fillStyle = '#e84393';
+                            ctx.beginPath();
+                            ctx.moveTo(10 * zoomLevel, 0);
+                            ctx.lineTo(-6 * zoomLevel, -6 * zoomLevel);
+                            ctx.lineTo(-2 * zoomLevel, 0);
+                            ctx.lineTo(-6 * zoomLevel, 6 * zoomLevel);
+                            ctx.closePath();
+                            ctx.fill();
+                        }
                         ctx.restore();
                     }
                 }
@@ -683,9 +700,9 @@
             redrawCanvas();
         };
 
-        window.draw_turtle_cursor = function(x, y, angle, visible) {
+        window.draw_turtle_cursor = function(x, y, angle, visible, shape="classic") {
             drawingCommands = drawingCommands.filter(c => c.type !== 'cursor');
-            drawingCommands.push({ type: 'cursor', x, y, angle, visible });
+            drawingCommands.push({ type: 'cursor', x, y, angle, visible, shape: shape });
             redrawCanvas();
         };
 
@@ -742,11 +759,17 @@ class TurtleObj:
         self.fill_coords = []
         self.visible = True
         self.command_count = 0
+        self.current_shape = "classic"
         js.clearTurtleScreen()
         self._refresh()
 
     def _refresh(self):
-        js.draw_turtle_cursor(self.x, self.y, self.angle, self.visible)
+        js.draw_turtle_cursor(self.x, self.y, self.angle, self.visible, self.current_shape)
+
+    def shape(self, name=None):
+        if name is None: return self.current_shape
+        self.current_shape = str(name)
+        self._refresh()
 
     def _sleep_logic(self):
         if js.getIsCancelled():
@@ -950,6 +973,7 @@ turtle_mod.pos = lambda: _t.pos()
 turtle_mod.xcor = lambda: _t.xcor()
 turtle_mod.ycor = lambda: _t.ycor()
 turtle_mod.heading = lambda: _t.heading()
+turtle_mod.shape = lambda name=None: _t.shape(name)
 
 sys.modules['turtle'] = turtle_mod
 
