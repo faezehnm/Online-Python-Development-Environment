@@ -1,0 +1,1166 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>کلاس کدنوردی | دبیرستان مفید</title>
+    <style>
+        body {
+            font-family: Tahoma, "B Yekan", "Vazir", sans-serif;
+            display: flex;
+            flex-direction: column;
+            margin: 0;
+            height: 100vh;
+            background: linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%);
+            padding: 10px;
+            box-sizing: border-box;
+        }
+        
+        .header {
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(10px);
+            color: #4a4a4a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 15px;
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            margin-bottom: 8px;
+            border: 1px solid rgba(255,255,255,0.8);
+        }
+        
+        .logo {
+            width: 45px;
+            height: 45px;
+            object-fit: contain;
+            background-color: white;
+            border-radius: 12px;
+            padding: 4px;
+            margin-left: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .title-container {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .main-title {
+            font-size: 18px;
+            font-weight: 900;
+            color: #6c5ce7;
+        }
+
+        .header-sub {
+            font-size: 11px;
+            font-weight: bold;
+            margin-top: 2px;
+            color: #8395a7;
+        }
+
+        .editor-container {
+            flex: 1.5;
+            display: flex;
+            flex-direction: column;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 16px;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+            margin-bottom: 8px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.8);
+            position: relative;
+        }
+
+        .editor-header {
+            background: #f1f2f6;
+            padding: 6px 12px;
+            font-size: 12px;
+            font-weight: bold;
+            color: #4a4a4a;
+            border-bottom: 1px solid #dfe4ea;
+        }
+
+        #suggestion-bar {
+            display: flex; 
+            align-items: center;
+            min-height: 26px;
+            background: #f1f2f6;
+            padding: 6px 10px;
+            overflow-x: auto;
+            white-space: nowrap;
+            border-bottom: 2px solid #dfe4ea;
+            direction: ltr; 
+            gap: 8px;
+            scroll-behavior: smooth;
+        }
+        
+        #suggestion-bar::-webkit-scrollbar { display: none; }
+
+        .sugg-btn {
+            background: #6c5ce7;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 4px 10px;
+            font-family: "Courier New", monospace;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(108, 92, 231, 0.3);
+            margin-right: 6px;
+            display: inline-block;
+        }
+        .sugg-btn:active { transform: scale(0.95); background: #a29bfe; }
+
+        .editor-wrapper {
+            display: flex;
+            direction: ltr;
+            flex: 1;
+            overflow: hidden;
+            background-color: transparent;
+        }
+
+        .line-numbers {
+            width: 40px;
+            min-width: 40px;
+            padding: 12px 5px;
+            background: #f8f9fa;
+            color: #a4b0be;
+            font-family: "Courier New", monospace;
+            font-size: 15px;
+            line-height: 1.5;
+            text-align: center;
+            border-right: 1px solid #dfe4ea;
+            user-select: none;
+            overflow-y: hidden;
+            box-sizing: border-box;
+        }
+
+        textarea {
+            flex: 1;
+            font-family: "Courier New", monospace;
+            font-size: 15px;
+            padding: 12px;
+            border: none;
+            resize: none;
+            background-color: transparent;
+            color: #2d3436;
+            direction: ltr;
+            text-align: left;
+            line-height: 1.5;
+            white-space: pre;
+            overflow: auto;
+            box-sizing: border-box;
+        }
+        textarea:focus { outline: none; }
+        textarea::placeholder { color: #b2bec3; }
+        
+        .btn-container {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        #runBtn {
+            flex: 3;
+            background: linear-gradient(135deg, #a29bfe, #6c5ce7);
+            color: white;
+            font-size: 17px;
+            font-weight: bold;
+            padding: 12px;
+            border-radius: 16px;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(108, 92, 231, 0.4);
+            transition: all 0.2s ease;
+        }
+        #runBtn:active { transform: scale(0.96); }
+        #runBtn:disabled { background: #dfe6e9; color: #b2bec3; box-shadow: none; cursor: wait; }
+
+        #stopBtn {
+            flex: 1;
+            background: linear-gradient(135deg, #ff6b81, #ff4757);
+            color: white;
+            font-size: 15px;
+            font-weight: bold;
+            padding: 12px;
+            border-radius: 16px;
+            border: none;
+            cursor: pointer;
+            display: none;
+            box-shadow: 0 4px 12px rgba(255, 107, 129, 0.4);
+            transition: all 0.2s ease;
+        }
+        #stopBtn:active { transform: scale(0.96); }
+        
+        .output-section {
+            flex: 1.8;
+            display: flex;
+            gap: 8px;
+            margin-bottom: 5px;
+            min-height: 200px;
+        }
+
+        @media (max-width: 768px) {
+            .output-section {
+                flex-direction: column;
+            }
+            #turtleBox { order: 1; }
+            #terminalBox { order: 2; }
+        }
+
+        @media (min-width: 769px) {
+            .output-section {
+                flex-direction: row;
+            }
+            #terminalBox { order: 1; }
+            #turtleBox { order: 2; }
+        }
+
+        .turtle-container {
+            display: none; 
+            flex: 1;
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+            flex-direction: column;
+            overflow: hidden;
+            border: 2px solid #a29bfe;
+        }
+
+        .output-header {
+            background: #f1f2f6;
+            padding: 6px 10px;
+            font-size: 11px;
+            font-weight: bold;
+            color: #4a4a4a;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #dfe4ea;
+        }
+
+        .turtle-controls {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+        }
+        .ctrl-btn {
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            padding: 2px 6px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #4a5568;
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+        .ctrl-btn:active { background: #e2e8f0; }
+        
+        .speed-slider {
+            width: 70px;
+            cursor: pointer;
+        }
+
+        #turtleCanvas {
+            width: 100%;
+            flex: 1;
+            background: #fafafa;
+            cursor: grab;
+        }
+        #turtleCanvas:active {
+            cursor: grabbing;
+        }
+
+        .terminal-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #1e1e2f;
+            border-radius: 16px;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .terminal-header {
+            background: #2a2a40;
+            padding: 6px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .terminal-left { display: flex; align-items: center; gap: 6px; }
+        .dot { width: 10px; height: 10px; border-radius: 50%; }
+        .dot.red { background: #ff5f56; }
+        .dot.yellow { background: #ffbd2e; }
+        .dot.green { background: #27c93f; }
+
+        .terminal-title { color: #a4b0be; font-size: 11px; font-family: Tahoma; }
+
+        .terminal-download-btn {
+            background: rgba(85, 239, 196, 0.15);
+            color: #55efc4;
+            border: 1px solid #55efc4;
+            border-radius: 8px;
+            padding: 2px 8px;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            font-family: Tahoma;
+        }
+        
+        pre {
+            flex: 1;
+            font-family: "Courier New", monospace;
+            font-size: 13px;
+            margin: 0;
+            padding: 10px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            direction: ltr;
+            text-align: left;
+            line-height: 1.4;
+        }
+
+        .text-normal { color: #f1f2f6; }
+        .text-input { color: #ff9ff3; font-weight: bold; }
+        .text-error { color: #ff6b81; }
+        .text-system { color: #7bed9f; font-family: Tahoma; text-align: right; display: block; margin-bottom: 5px;}
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <img src="logo.png" alt="لوگوی مجتمع آموزشی مفید" class="logo" onerror="this.style.display='none'">
+        <div class="title-container">
+            <div class="main-title">✨ کلاس کدنوردی ✨</div>
+            <div class="header-sub">متوسطه دوره اول دخترانه مفید</div>
+        </div>
+    </div>
+
+    <div class="editor-container">
+        <div class="editor-header">💻 اتاق فرمان</div>
+        <div id="suggestion-bar"></div>
+        <div class="editor-wrapper">
+            <div class="line-numbers" id="lineNumbers">1</div>
+            <textarea id="code" 
+                      autocapitalize="none" 
+                      autocorrect="off" 
+                      autocomplete="off" 
+                      spellcheck="false" 
+                      placeholder="# کدهای پایتون خود را اینجا بنویسید..."></textarea>
+        </div>
+    </div>
+    
+    <div class="btn-container">
+        <button id="runBtn" onclick="runPython()" disabled>⏳ در حال راه‌اندازی...</button>
+        <button id="stopBtn" onclick="stopExecution()">🛑 توقف</button>
+    </div>
+    
+    <div class="output-section">
+        <!-- صفحه نمایش Turtle -->
+        <div class="turtle-container" id="turtleBox">
+            <div class="output-header">
+                <span>🐢 صفحه نمایش Turtle</span>
+                <div class="turtle-controls">
+                    <input type="range" class="speed-slider" min="1" max="10" value="5" oninput="setSpeed(this.value)" title="سرعت حرکت">
+                    <button class="ctrl-btn" onclick="zoomTurtle(0.8)" title="کوچک‌نمایی">➖</button>
+                    <button class="ctrl-btn" onclick="zoomTurtle(1.25)" title="بزرگ‌نمایی">➕</button>
+                    <button class="ctrl-btn" onclick="resetTurtleView()" title="بازگشت به مرکز">🏠</button>
+                    <button class="ctrl-btn" onclick="clearTurtleScreen()" title="پاک کردن صفحه">🧹</button>
+                    <button class="ctrl-btn" onclick="closeTurtleBox()" title="بستن صفحه">✕</button>
+                </div>
+            </div>
+            <canvas id="turtleCanvas"></canvas>
+        </div>
+
+        <!-- خروجی متنی -->
+        <div class="terminal-container" id="terminalBox">
+            <div class="terminal-header">
+                <div class="terminal-left">
+                    <div class="dot red"></div>
+                    <div class="dot yellow"></div>
+                    <div class="dot green"></div>
+                </div>
+                <div class="terminal-title">صفحه خروجی</div>
+                <div style="display: flex; gap: 6px; align-items: center;">
+                    <button class="terminal-download-btn" onclick="downloadSnapshot()">📸 عکس</button>
+                </div>
+            </div>
+            <pre id="output"></pre>
+        </div>
+    </div>
+
+    <script type="module">
+        import { loadPyodide } from "./pyodide/pyodide.mjs";
+
+        let pyodideInstance;
+        let turtleSpeed = 5; 
+        let isRunning = false;
+        let isCancelled = false;
+
+        const pythonKeywords = [
+            'turtle.forward()', 'turtle.backward()', 'turtle.right()', 'turtle.left()', 
+            'turtle.goto()', 'turtle.circle()', 'turtle.color()', 'turtle.fillcolor()', 
+            'turtle.bgcolor()', 'turtle.begin_fill()', 'turtle.end_fill()', 'turtle.penup()', 
+            'turtle.pendown()', 'turtle.width()', 'turtle.clear()', 'print()', 'input()', 'import turtle'
+        ];
+
+        const textarea = document.getElementById('code');
+        const suggestionBar = document.getElementById('suggestion-bar');
+        const lineNumbers = document.getElementById('lineNumbers');
+
+        function updateLineNumbers() {
+            const linesCount = textarea.value.split('\n').length;
+            let numbersHtml = '';
+            for (let i = 1; i <= linesCount; i++) {
+                numbersHtml += i + '<br>';
+            }
+            lineNumbers.innerHTML = numbersHtml;
+        }
+
+        textarea.addEventListener('scroll', () => {
+            lineNumbers.scrollTop = textarea.scrollTop;
+        });
+
+        function updateSuggestions() {
+            let cursor = textarea.selectionStart;
+            let text = textarea.value;
+            let textBeforeCursor = text.substring(0, cursor);
+            let match = textBeforeCursor.match(/[a-zA-Z_.]+$/);
+
+            if (match) {
+                let typedWord = match[0].toLowerCase();
+                let suggestions = pythonKeywords.filter(k => k.toLowerCase().startsWith(typedWord) && k.toLowerCase() !== typedWord);
+
+                if (suggestions.length > 0) {
+                    suggestionBar.innerHTML = '';
+                    suggestions.forEach(s => {
+                        let btn = document.createElement('button');
+                        btn.className = 'sugg-btn';
+                        btn.innerText = s;
+                        btn.onmousedown = (e) => {
+                            e.preventDefault(); 
+                            applySuggestion(typedWord, s, cursor);
+                        };
+                        suggestionBar.appendChild(btn);
+                    });
+                } else {
+                    suggestionBar.innerHTML = ''; 
+                }
+            } else {
+                suggestionBar.innerHTML = '';
+            }
+        }
+
+        function applySuggestion(typedWord, suggestion, cursor) {
+            let text = textarea.value;
+            let startText = text.substring(0, cursor - typedWord.length);
+            let endText = text.substring(cursor);
+
+            textarea.value = startText + suggestion + endText;
+            let newCursor = startText.length + suggestion.length;
+            if (suggestion.endsWith('()')) { newCursor -= 1; }
+            
+            textarea.selectionStart = textarea.selectionEnd = newCursor;
+            suggestionBar.innerHTML = '';
+            updateLineNumbers();
+            textarea.focus();
+        }
+
+        textarea.addEventListener('input', () => {
+            updateSuggestions();
+            updateLineNumbers();
+        });
+        
+        textarea.addEventListener('keyup', updateSuggestions);
+        textarea.addEventListener('click', updateSuggestions);
+
+        textarea.addEventListener('keydown', function(e) {
+            if (e.key === 'Tab') {
+                e.preventDefault();
+                let start = this.selectionStart;
+                let end = this.selectionEnd;
+                this.value = this.value.substring(0, start) + "    " + this.value.substring(end);
+                this.selectionStart = this.selectionEnd = start + 4;
+                updateLineNumbers();
+            }
+            const pairs = { '(': ')', '[': ']', '{': '}', '"': '"', "'": "'" };
+            if (pairs[e.key]) {
+                e.preventDefault();
+                let start = this.selectionStart;
+                let end = this.selectionEnd;
+                this.value = this.value.substring(0, start) + e.key + pairs[e.key] + this.value.substring(end);
+                this.selectionStart = this.selectionEnd = start + 1;
+                updateLineNumbers();
+            }
+        });
+
+        updateLineNumbers(); // تنظیم اولیه شماره خطوط
+
+        window.setSpeed = function(val) { turtleSpeed = val; };
+        window.getTurtleSpeed = function() { return turtleSpeed; };
+        window.getIsCancelled = function() { return isCancelled; };
+
+        window.stopExecution = function() {
+            isCancelled = true;
+            window.printTerminal("\n⚠️ درخواست توقف توسط کاربر صادر شد.\n", "error");
+        };
+
+        let canvas, ctx, cx, cy;
+        let zoomLevel = 0.6;
+        let panX = 0, panY = 0;
+        let canvasBgColor = "#fafafa";
+        let drawingCommands = [];
+        let listenersAttached = false;
+
+        window.initTurtleCanvas = function() {
+            canvas = document.getElementById('turtleCanvas');
+            if (!canvas) return;
+            ctx = canvas.getContext('2d');
+
+            let displayWidth = canvas.parentElement.clientWidth || 300;
+            let displayHeight = canvas.parentElement.clientHeight - 30 || 220;
+            
+            let dpr = window.devicePixelRatio || 1;
+            canvas.width = displayWidth * dpr;
+            canvas.height = displayHeight * dpr;
+            canvas.style.width = displayWidth + 'px';
+            canvas.style.height = displayHeight + 'px';
+
+            ctx.scale(dpr, dpr);
+
+            cx = displayWidth / 2;
+            cy = displayHeight / 2;
+            redrawCanvas();
+
+            if (!listenersAttached) {
+                listenersAttached = true;
+                let isDragging = false;
+                let startX = 0, startY = 0;
+
+                canvas.addEventListener('mousedown', (e) => {
+                    isDragging = true;
+                    startX = e.clientX - panX;
+                    startY = e.clientY - panY;
+                });
+                window.addEventListener('mousemove', (e) => {
+                    if (!isDragging) return;
+                    panX = e.clientX - startX;
+                    panY = e.clientY - startY;
+                    redrawCanvas();
+                });
+                window.addEventListener('mouseup', () => { isDragging = false; });
+
+                canvas.addEventListener('touchstart', (e) => {
+                    if (e.touches.length === 1) {
+                        isDragging = true;
+                        startX = e.touches[0].clientX - panX;
+                        startY = e.touches[0].clientY - panY;
+                    }
+                }, {passive: true});
+                window.addEventListener('touchmove', (e) => {
+                    if (!isDragging || e.touches.length !== 1) return;
+                    panX = e.touches[0].clientX - startX;
+                    panY = e.touches[0].clientY - startY;
+                    redrawCanvas();
+                }, {passive: true});
+                window.addEventListener('touchend', () => { isDragging = false; });
+            }
+        };
+
+        window.clearTurtleScreen = function() {
+            drawingCommands = [];
+            canvasBgColor = "#fafafa";
+            if (ctx && canvas) {
+                redrawCanvas();
+            }
+        };
+
+        window.setCanvasBg = function(color) {
+            canvasBgColor = color;
+            redrawCanvas();
+        };
+
+        window.zoomTurtle = function(factor) {
+            zoomLevel *= factor;
+            if (zoomLevel < 0.2) zoomLevel = 0.2;
+            if (zoomLevel > 5.0) zoomLevel = 5.0;
+            redrawCanvas();
+        };
+
+        window.resetTurtleView = function() {
+            zoomLevel = 0.6;
+            panX = 0;
+            panY = 0;
+            redrawCanvas();
+        };
+
+        window.redrawCanvas = function() {
+            if (!ctx || !canvas) return;
+            let displayWidth = canvas.width / (window.devicePixelRatio || 1);
+            let displayHeight = canvas.height / (window.devicePixelRatio || 1);
+
+            ctx.fillStyle = canvasBgColor;
+            ctx.fillRect(0, 0, displayWidth, displayHeight);
+            
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+
+            let currentCx = cx + panX;
+            let currentCy = cy + panY;
+
+            for (let cmd of drawingCommands) {
+                if (cmd.type === 'line') {
+                    ctx.strokeStyle = cmd.color;
+                    ctx.lineWidth = cmd.width * zoomLevel;
+                    ctx.beginPath();
+                    ctx.moveTo(currentCx + cmd.x1 * zoomLevel, currentCy - cmd.y1 * zoomLevel);
+                    ctx.lineTo(currentCx + cmd.x2 * zoomLevel, currentCy - cmd.y2 * zoomLevel);
+                    ctx.stroke();
+                } else if (cmd.type === 'fill') {
+                    ctx.fillStyle = cmd.fill_color;
+                    ctx.beginPath();
+                    let pts = cmd.points;
+                    ctx.moveTo(currentCx + pts[0][0] * zoomLevel, currentCy - pts[0][1] * zoomLevel);
+                    for (let i = 1; i < pts.length; i++) {
+                        ctx.lineTo(currentCx + pts[i][0] * zoomLevel, currentCy - pts[i][1] * zoomLevel);
+                    }
+                    ctx.closePath();
+                    ctx.fill();
+                    if (cmd.border_color) {
+                        ctx.strokeStyle = cmd.border_color;
+                        ctx.lineWidth = cmd.width * zoomLevel;
+                        ctx.stroke();
+                    }
+                } else if (cmd.type === 'text') {
+                    ctx.font = (parseInt(cmd.fontSize) * zoomLevel) + 'px Arial';
+                    ctx.fillStyle = cmd.color || 'black';
+                    ctx.fillText(cmd.text, currentCx + cmd.x * zoomLevel, currentCy - cmd.y * zoomLevel);
+                } else if (cmd.type === 'cursor') {
+                    if (cmd.visible) {
+                        ctx.save();
+                        ctx.translate(currentCx + cmd.x * zoomLevel, currentCy - cmd.y * zoomLevel);
+                        ctx.rotate(-cmd.angle * Math.PI / 180);
+                        ctx.fillStyle = '#e84393';
+                        ctx.beginPath();
+                        ctx.moveTo(10 * zoomLevel, 0);
+                        ctx.lineTo(-6 * zoomLevel, -6 * zoomLevel);
+                        ctx.lineTo(-2 * zoomLevel, 0);
+                        ctx.lineTo(-6 * zoomLevel, 6 * zoomLevel);
+                        ctx.closePath();
+                        ctx.fill();
+                        ctx.restore();
+                    }
+                }
+            }
+        };
+
+        window.draw_turtle_line = function(x1, y1, x2, y2, color, width) {
+            drawingCommands.push({ type: 'line', x1, y1, x2, y2, color, width });
+            redrawCanvas();
+        };
+
+        window.draw_turtle_fill = function(points, fill_color, border_color, width) {
+            let cleanPoints = [];
+            for (let i = 0; i < points.length; i++) {
+                let p = points[i];
+                cleanPoints.push([Number(p[0]), Number(p[1])]);
+            }
+            drawingCommands.push({ type: 'fill', points: cleanPoints, fill_color, border_color, width });
+            redrawCanvas();
+        };
+
+        window.draw_turtle_text = function(x, y, text, font, color) {
+            let sizeMatch = font ? font.match(/(\d+)px/) : null;
+            let fontSize = sizeMatch ? parseInt(sizeMatch[1]) : 12;
+            drawingCommands.push({ type: 'text', x, y, text, fontSize, color });
+            redrawCanvas();
+        };
+
+        window.draw_turtle_cursor = function(x, y, angle, visible) {
+            drawingCommands = drawingCommands.filter(c => c.type !== 'cursor');
+            drawingCommands.push({ type: 'cursor', x, y, angle, visible });
+            redrawCanvas();
+        };
+
+        window.closeTurtleBox = function() {
+            document.getElementById('turtleBox').style.display = 'none';
+        };
+
+        window.printTerminal = function(msg, type = "normal") {
+            let outputArea = document.getElementById("output");
+            let span = document.createElement("span");
+            
+            if (type === "input") { span.className = "text-input"; }
+            else if (type === "error") { span.className = "text-error"; }
+            else if (type === "system") { span.className = "text-system"; }
+            else { span.className = "text-normal"; }
+            
+            span.textContent = msg;
+            outputArea.appendChild(span);
+            outputArea.scrollTop = outputArea.scrollHeight; 
+        };
+
+        window.safePrompt = function(msg) {
+            let answer = prompt(msg);
+            return answer === null ? "" : answer;
+        };
+
+        async function initPyodide() {
+            try {
+                pyodideInstance = await loadPyodide({ indexURL: "./pyodide/" });
+                
+                await pyodideInstance.runPythonAsync(`
+import sys
+import types
+import js
+import math
+import time
+
+turtle_mod = types.ModuleType('turtle')
+
+class TurtleObj:
+    def __init__(self):
+        self.reset_state()
+        self.command_count = 0
+
+    def reset_state(self):
+        self.x = 0
+        self.y = 0
+        self.angle = 0 
+        self.is_down = True
+        self.pen_color = "#6c5ce7"
+        self.fill_color = "#6c5ce7"
+        self.pen_width = 2
+        self.is_filling = False
+        self.fill_coords = []
+        self.visible = True
+        self.command_count = 0
+        js.clearTurtleScreen()
+        self._refresh()
+
+    def _refresh(self):
+        js.draw_turtle_cursor(self.x, self.y, self.angle, self.visible)
+
+    def _sleep_logic(self):
+        if js.getIsCancelled():
+            raise Exception("🛑 اجرا توسط کاربر متوقف شد.")
+        speed_val = float(js.getTurtleSpeed())
+        if speed_val >= 10: return
+        delay = (11 - speed_val) * 0.004
+        if self.command_count > 100:
+            delay *= 0.1
+        time.sleep(delay)
+
+    def forward(self, distance):
+        self.command_count += 1
+        steps = max(int(abs(distance) / 4), 1)
+        if self.command_count > 100:
+            steps = 1
+            
+        d_step = distance / steps
+        for _ in range(steps):
+            if js.getIsCancelled():
+                raise Exception("🛑 اجرا توسط کاربر متوقف شد.")
+            rad = math.radians(self.angle)
+            nx = self.x + d_step * math.cos(rad)
+            ny = self.y + d_step * math.sin(rad)
+            if self.is_down:
+                js.draw_turtle_line(self.x, self.y, nx, ny, self.pen_color, self.pen_width)
+            if self.is_filling:
+                self.fill_coords.append((nx, ny))
+            self.x, self.y = nx, ny
+            self._refresh()
+            self._sleep_logic()
+
+    def fd(self, d): self.forward(d)
+    def backward(self, distance): self.forward(-distance)
+    def bk(self, d): self.backward(d)
+    
+    def right(self, angle): 
+        if js.getIsCancelled():
+            raise Exception("🛑 اجرا توسط کاربر متوقف شد.")
+        self.angle = (self.angle + angle) % 360
+        self._refresh()
+        self._sleep_logic()
+    def rt(self, a): self.right(a)
+    
+    def left(self, angle): 
+        if js.getIsCancelled():
+            raise Exception("🛑 اجرا توسط کاربر متوقف شد.")
+        self.angle = (self.angle - angle) % 360
+        self._refresh()
+        self._sleep_logic()
+    def lt(self, a): self.left(a)
+
+    def goto(self, x, y):
+        self.command_count += 1
+        target_x, target_y = float(x), float(y)
+        dx = target_x - self.x
+        dy = target_y - self.y
+        dist = math.hypot(dx, dy)
+        steps = max(int(dist / 5), 1)
+        if self.command_count > 100:
+            steps = 1
+            
+        sx = dx / steps
+        sy = dy / steps
+        for _ in range(steps):
+            if js.getIsCancelled():
+                raise Exception("🛑 اجرا توسط کاربر متوقف شد.")
+            nx = self.x + sx
+            ny = self.y + sy
+            if self.is_down:
+                js.draw_turtle_line(self.x, self.y, nx, ny, self.pen_color, self.pen_width)
+            if self.is_filling:
+                self.fill_coords.append((nx, ny))
+            self.x, self.y = nx, ny
+            self._refresh()
+            self._sleep_logic()
+
+    def setposition(self, x, y): self.goto(x, y)
+    def setpos(self, x, y): self.goto(x, y)
+    def setx(self, x): self.goto(x, self.y)
+    def sety(self, y): self.goto(self.x, y)
+
+    def setheading(self, angle): self.angle = float(angle) % 360; self._refresh()
+    def seth(self, angle): self.setheading(angle)
+    def home(self): self.goto(0, 0); self.setheading(0)
+
+    def circle(self, radius, extent=360, steps=None):
+        if steps is None:
+            steps = 36
+        arc_len = 2 * math.pi * abs(radius) * (abs(extent) / 360.0)
+        d_angle = extent / steps
+        d_len = arc_len / steps
+        for _ in range(steps):
+            if js.getIsCancelled():
+                raise Exception("🛑 اجرا توسط کاربر متوقف شد.")
+            self.forward(d_len)
+            self.left(d_angle)
+
+    def pendown(self): self.is_down = True
+    def pd(self): self.pendown()
+    def down(self): self.pendown()
+
+    def penup(self): self.is_down = False
+    def pu(self): self.penup()
+    def up(self): self.penup()
+
+    def pencolor(self, c=None):
+        if c is None: return self.pen_color
+        self.pen_color = c
+
+    def fillcolor(self, c=None):
+        if c is None: return self.fill_color
+        self.fill_color = c
+
+    def color(self, c1, c2=None):
+        self.pen_color = c1
+        if c2: self.fill_color = c2
+
+    def width(self, w=None):
+        if w is None: return self.pen_width
+        self.pen_width = w
+    def pensize(self, w=None): return self.width(w)
+
+    def bgcolor(self, c):
+        js.setCanvasBg(c)
+
+    def begin_fill(self):
+        self.is_filling = True
+        self.fill_coords = [(self.x, self.y)]
+
+    def end_fill(self):
+        if self.is_filling and len(self.fill_coords) > 2:
+            js.draw_turtle_fill(self.fill_coords, self.fill_color, self.pen_color, self.pen_width)
+        self.is_filling = False
+        self.fill_coords = []
+
+    def write(self, arg, move=False, align="left", font=("Arial", 8, "normal")):
+        font_str = f"{font[1]}px {font[0]}"
+        js.draw_turtle_text(self.x, self.y, str(arg), font_str, self.pen_color)
+
+    def clear(self): js.clearTurtleScreen()
+    def reset(self): self.reset_state()
+    def clearscreen(self): self.reset_state()
+
+    def hideturtle(self): self.visible = False; self._refresh()
+    def ht(self): self.hideturtle()
+    def showturtle(self): self.visible = True; self._refresh()
+    def st(self): self.showturtle()
+    def isvisible(self): return self.visible
+
+    def position(self): return (self.x, self.y)
+    def pos(self): return self.position()
+    def xcor(self): return self.x
+    def ycor(self): return self.y
+    def heading(self): return self.angle
+
+_t = TurtleObj()
+
+turtle_mod.forward = lambda d: _t.forward(d)
+turtle_mod.fd = lambda d: _t.forward(d)
+turtle_mod.backward = lambda d: _t.backward(d)
+turtle_mod.bk = lambda d: _t.backward(d)
+turtle_mod.right = lambda a: _t.right(a)
+turtle_mod.rt = lambda a: _t.rt(a)
+turtle_mod.left = lambda a: _t.left(a)
+turtle_mod.lt = lambda a: _t.lt(a)
+turtle_mod.goto = lambda x, y: _t.goto(x, y)
+turtle_mod.setposition = lambda x, y: _t.setposition(x, y)
+turtle_mod.setpos = lambda x, y: _t.setpos(x, y)
+turtle_mod.setx = lambda x: _t.setx(x)
+turtle_mod.sety = lambda y: _t.sety(y)
+turtle_mod.setheading = lambda a: _t.setheading(a)
+turtle_mod.seth = lambda a: _t.seth(a)
+turtle_mod.home = lambda: _t.home()
+turtle_mod.circle = lambda r, extent=360, steps=None: _t.circle(r, extent, steps)
+turtle_mod.pendown = lambda: _t.pendown()
+turtle_mod.pd = lambda: _t.pd()
+turtle_mod.down = lambda: _t.down()
+turtle_mod.penup = lambda: _t.penup()
+turtle_mod.pu = lambda: _t.pu()
+turtle_mod.up = lambda: _t.up()
+turtle_mod.pencolor = lambda c=None: _t.pencolor(c)
+turtle_mod.fillcolor = lambda c=None: _t.fillcolor(c)
+turtle_mod.color = lambda c1, c2=None: _t.color(c1, c2)
+turtle_mod.width = lambda w=None: _t.width(w)
+turtle_mod.pensize = lambda w=None: _t.pensize(w)
+turtle_mod.bgcolor = lambda c: _t.bgcolor(c)
+turtle_mod.begin_fill = lambda: _t.begin_fill()
+turtle_mod.end_fill = lambda: _t.end_fill()
+turtle_mod.write = lambda arg, move=False, align="left", font=("Arial", 8, "normal"): _t.write(arg, move, align, font)
+turtle_mod.clear = lambda: _t.clear()
+turtle_mod.reset = lambda: _t.reset()
+turtle_mod.clearscreen = lambda: _t.clearscreen()
+turtle_mod.hideturtle = lambda: _t.hideturtle()
+turtle_mod.ht = lambda: _t.ht()
+turtle_mod.showturtle = lambda: _t.showturtle()
+turtle_mod.st = lambda: _t.st()
+turtle_mod.isvisible = lambda: _t.isvisible()
+turtle_mod.position = lambda: _t.position()
+turtle_mod.pos = lambda: _t.pos()
+turtle_mod.xcor = lambda: _t.xcor()
+turtle_mod.ycor = lambda: _t.ycor()
+turtle_mod.heading = lambda: _t.heading()
+
+sys.modules['turtle'] = turtle_mod
+
+import builtins
+def custom_input(prompt_text=""):
+    js.printTerminal(prompt_text, "normal")
+    user_answer = js.safePrompt(prompt_text)
+    js.printTerminal(user_answer + "\\n", "input")
+    return user_answer
+builtins.input = custom_input
+                `);
+
+                document.getElementById("runBtn").innerText = "🚀 اجرای کد";
+                document.getElementById("runBtn").disabled = false;
+
+            } catch (err) {
+                document.getElementById("output").innerHTML = "";
+                window.printTerminal("خطا در بارگذاری سیستم:\n" + err, "error");
+            }
+        }
+
+        initPyodide();
+
+        window.runPython = async function() {
+            if (isRunning) return;
+            isRunning = true;
+            isCancelled = false;
+
+            document.getElementById('runBtn').disabled = true;
+            document.getElementById('runBtn').innerText = "⏳ در حال اجرا...";
+            document.getElementById('stopBtn').style.display = "block";
+
+            let code = document.getElementById("code").value;
+            code = code.replace(/[“”]/g, '"').replace(/[‘’]/g, "'");
+
+            let turtleBox = document.getElementById('turtleBox');
+            let terminalBox = document.getElementById('terminalBox');
+            let usesTurtle = /\bimport\s+turtle\b/.test(code);
+
+            if (usesTurtle) {
+                turtleBox.style.display = "flex";
+                zoomLevel = 0.6;
+                panX = 0;
+                panY = 0;
+                window.initTurtleCanvas();
+                try {
+                    await pyodideInstance.runPythonAsync("import turtle; turtle.reset()");
+                } catch(e) {}
+            } else {
+                turtleBox.style.display = "none";
+            }
+
+            terminalBox.style.display = "flex";
+
+            let outputArea = document.getElementById("output");
+            outputArea.innerHTML = ""; 
+            
+            pyodideInstance.setStdout({ batched: (msg) => { window.printTerminal(msg + "\n", "normal"); } });
+            pyodideInstance.setStderr({ batched: (msg) => { window.printTerminal(msg + "\n", "error"); } });
+
+            try {
+                await pyodideInstance.loadPackagesFromImports(code);
+                await pyodideInstance.runPythonAsync(code);
+            } catch (err) {
+                if (isCancelled) {
+                    window.printTerminal("\n⚠️ برنامه توسط کاربر متوقف شد.\n", "error");
+                } else {
+                    window.printTerminal("❌ خطای برنامه‌نویسی:\n" + err, "error"); 
+                }
+            } finally {
+                isRunning = false;
+                isCancelled = false;
+                document.getElementById('runBtn').disabled = false;
+                document.getElementById('runBtn').innerText = "🚀 اجرای کد";
+                document.getElementById('stopBtn').style.display = "none";
+            }
+        };
+
+        window.downloadSnapshot = function() {
+            let codeText = document.getElementById("code").value;
+            let outputText = document.getElementById("output").innerText;
+            let usesTurtle = /\bimport\s+turtle\b/.test(codeText);
+
+            let codeLines = codeText.split('\n');
+            let outputLines = outputText.split('\n');
+
+            let paddingTop = 120;
+            let codeBoxHeight = Math.max(150, codeLines.length * 32 + 60);
+            let gap = 40;
+            
+            let turtleHeaderHeight = usesTurtle ? 45 : 0;
+            let turtleBoxHeight = usesTurtle ? 350 : 0;
+            
+            let terminalHeaderHeight = 45;
+            let terminalBoxHeight = Math.max(150, outputLines.length * 26 + 60);
+            let paddingBottom = 60;
+
+            let totalHeight = paddingTop + codeBoxHeight + (usesTurtle ? (gap + turtleHeaderHeight + turtleBoxHeight) : 0) + gap + terminalHeaderHeight + terminalBoxHeight + paddingBottom;
+            let totalWidth = 1000;
+
+            let canvas = document.createElement('canvas');
+            canvas.width = totalWidth * 2;
+            canvas.height = totalHeight * 2;
+            let ctx = canvas.getContext('2d');
+            ctx.scale(2, 2);
+
+            let bgGrad = ctx.createLinearGradient(0, 0, 0, totalHeight);
+            bgGrad.addColorStop(0, '#fbc2eb');
+            bgGrad.addColorStop(1, '#a6c1ee');
+            ctx.fillStyle = bgGrad;
+            ctx.fillRect(0, 0, totalWidth, totalHeight);
+
+            ctx.fillStyle = '#4a4a4a';
+            ctx.font = 'bold 24px Tahoma';
+            ctx.textAlign = 'center';
+            ctx.fillText('✨ کلاس کدنوردی | دبیرستان دخترانه مفید ✨', totalWidth / 2, 50);
+
+            let codeBoxY = 80;
+            ctx.fillStyle = '#ffffff';
+            ctx.shadowColor = 'rgba(0,0,0,0.15)';
+            ctx.shadowBlur = 15;
+            ctx.beginPath();
+            ctx.roundRect(60, codeBoxY, 880, codeBoxHeight, 16);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+
+            ctx.fillStyle = '#6c5ce7';
+            ctx.font = 'bold 16px Tahoma';
+            ctx.textAlign = 'right';
+            ctx.fillText('💻 کدهای پایتون:', 900, codeBoxY + 32);
+
+            ctx.fillStyle = '#2d3436';
+            ctx.font = '15px "Courier New", monospace';
+            ctx.textAlign = 'left';
+            let y = codeBoxY + 68;
+            for (let i = 0; i < codeLines.length; i++) {
+                ctx.fillText(codeLines[i], 90, y);
+                y += 32;
+            }
+
+            let currentY = codeBoxY + codeBoxHeight + gap;
+
+            if (usesTurtle) {
+                ctx.fillStyle = '#ffffff';
+                ctx.shadowColor = 'rgba(0,0,0,0.15)';
+                ctx.shadowBlur = 15;
+                ctx.beginPath();
+                ctx.roundRect(60, currentY, 880, turtleHeaderHeight + turtleBoxHeight, 16);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+
+                ctx.fillStyle = '#f1f2f6';
+                ctx.beginPath();
+                ctx.roundRect(60, currentY, 880, turtleHeaderHeight, [16, 16, 0, 0]);
+                ctx.fill();
+
+                ctx.fillStyle = '#4a4a4a';
+                ctx.font = 'bold 14px Tahoma';
+                ctx.textAlign = 'right';
+                ctx.fillText('🐢 صفحه نمایش Turtle', 910, currentY + 28);
+
+                let turtleEl = document.getElementById('turtleCanvas');
+                if (turtleEl) {
+                    ctx.drawImage(turtleEl, 90, currentY + turtleHeaderHeight + 15, 820, turtleBoxHeight - 30);
+                }
+
+                currentY += turtleHeaderHeight + turtleBoxHeight + gap;
+            }
+
+            ctx.fillStyle = '#1e1e2f';
+            ctx.shadowColor = 'rgba(0,0,0,0.25)';
+            ctx.shadowBlur = 20;
+            ctx.beginPath();
+            ctx.roundRect(60, currentY, 880, terminalHeaderHeight + terminalBoxHeight, 16);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+
+            ctx.fillStyle = '#2a2a40';
+            ctx.beginPath();
+            ctx.roundRect(60, currentY, 880, terminalHeaderHeight, [16, 16, 0, 0]);
+            ctx.fill();
+            
+            ctx.fillStyle = '#ff5f56'; ctx.beginPath(); ctx.arc(95, currentY + 22, 6, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#ffbd2e'; ctx.beginPath(); ctx.arc(120, currentY + 22, 6, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#27c93f'; ctx.beginPath(); ctx.arc(145, currentY + 22, 6, 0, Math.PI * 2); ctx.fill();
+
+            ctx.fillStyle = '#a4b0be';
+            ctx.font = '13px Tahoma';
+            ctx.textAlign = 'right';
+            ctx.fillText('صفحه خروجی', 910, currentY + 27);
+
+            ctx.fillStyle = '#f1f2f6';
+            ctx.font = '14px "Courier New", monospace';
+            ctx.textAlign = 'left';
+            y = currentY + terminalHeaderHeight + 35;
+            for (let i = 0; i < outputLines.length; i++) {
+                ctx.fillText(outputLines[i], 90, y);
+                y += 26;
+            }
+
+            canvas.toBlob(function(blob) {
+                let url = URL.createObjectURL(blob);
+                let link = document.createElement('a');
+                link.href = url;
+                link.download = 'code-result.png';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+            }, 'image/png');
+        };
+    </script>
+</body>
+</html>
