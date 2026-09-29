@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>راهنمای کدهای نمونه | کلاس کدنوردی</title>
+    <style>
+        body {
+            font-family: Tahoma, "B Yekan", "Vazir", sans-serif;
+            background: linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%);
+            margin: 0;
+            padding: 20px;
+            color: #2d3436;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #6c5ce7;
+            text-align: center;
+            margin-bottom: 5px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #8395a7;
+            font-size: 14px;
+            margin-bottom: 25px;
+        }
+        .card {
+            background: #f8f9fa;
+            border: 1px solid #dfe4ea;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+        }
+        .card-header {
+            background: #f1f2f6;
+            padding: 10px 15px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #dfe4ea;
+            color: #4a4a4a;
+        }
+        .copy-btn {
+            background: #6c5ce7;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 6px 12px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .copy-btn:active {
+            transform: scale(0.95);
+            background: #a29bfe;
+        }
+        pre {
+            margin: 0;
+            padding: 15px;
+            background: #1e1e2f;
+            color: #f1f2f6;
+            font-family: "Courier New", monospace;
+            font-size: 14px;
+            direction: ltr;
+            text-align: left;
+            overflow-x: auto;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>📚 راهنمای کدهای نمونه پایتون و ترتل</h1>
+        <div class="subtitle">ویژه مدرسین کلاس کدنوردی - دبیرستان مفید</div>
+
+        <!-- نمونه ۱ -->
+        <div class="card">
+            <div class="card-header">
+                <span>۱. رسم مربع رنگی با ترتل (Turtle Square)</span>
+                <button class="copy-btn" onclick="copyCode(this)">📋 کپی کد</button>
+            </div>
+            <pre>import turtle
+
+turtle.bgcolor("#1e1e2f")
+turtle.color("cyan", "pink")
+turtle.width(3)
+
+turtle.penup()
+turtle.goto(-50, 50)
+turtle.pendown()
+
+turtle.begin_fill()
+for i in range(4):
+    turtle.forward(100)
+    turtle.right(90)
+turtle.end_fill()
+
+print("مربع رنگی رسم شد! ✨")</pre>
+        </div>
+
+        <!-- نمونه ۲ -->
+        <div class="card">
+            <div class="card-header">
+                <span>۲. رسم دایره با ترتل (Turtle Circle)</span>
+                <button class="copy-btn" onclick="copyCode(this)">📋 کپی کد</button>
+            </div>
+            <pre>import turtle
+
+turtle.bgcolor("#ffffff")
+turtle.color("purple")
+turtle.width(4)
+
+turtle.penup()
+turtle.goto(0, -50)
+turtle.pendown()
+
+turtle.circle(80)
+print("دایره کشیده شد! 🟢")</pre>
+        </div>
+
+        <!-- نمونه ۳ -->
+        <div class="card">
+            <div class="card-header">
+                <span>۳. دریافت نام و تعامل کاربر (Input & Print)</span>
+                <button class="copy-btn" onclick="copyCode(this)">📋 کپی کد</button>
+            </div>
+            <pre>print("سلام کدنورد عزیز! 👋")
+name = input("اسمت چیه؟ ")
+print("سلام", name, "جان! به کلاس کدنوردی خوش آمدی! 🚀")</pre>
+        </div>
+
+        <!-- نمونه ۴ -->
+        <div class="card">
+            <div class="card-header">
+                <span>۴. استفاده از شرط (If / Else)</span>
+                <button class="copy-btn" onclick="copyCode(this)">📋 کپی کد</button>
+            </div>
+            <pre>score = 20
+
+if score == 20:
+    print("عالی! نمره‌ات کامل شد 🌟")
+else:
+    print("تلاشت قابل تقدیر است! 💪")</pre>
+        </div>
+
+        <!-- نمونه ۵ -->
+        <div class="card">
+            <div class="card-header">
+                <span>۵. حلقه برای چاپ ستاره (For Loop)</span>
+                <button class="copy-btn" onclick="copyCode(this)">📋 کپی کد</button>
+            </div>
+            <pre>print("شروع رسم ستاره‌های متوالی:")
+for i in range(1, 6):
+    print("★" * i)</pre>
+        </div>
+
+    </div>
+
+    <script>
+        function copyCode(btn) {
+            let pre = btn.parentElement.nextElementSibling;
+            let text = pre.innerText;
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(() => {
+                    showSuccess(btn);
+                }).catch(() => {
+                    fallbackCopy(text, btn);
+                });
+            } else {
+                fallbackCopy(text, btn);
+            }
+        }
+
+        function fallbackCopy(text, btn) {
+            let textarea = document.createElement("textarea");
+            textarea.value = text;
+            textarea.style.position = "fixed";
+            document.body.appendChild(textarea);
+            textarea.focus();
+            textarea.select();
+            try {
+                let successful = document.execCommand('copy');
+                if (successful) {
+                    showSuccess(btn);
+                } else {
+                    alert("کپی نشد، لطفاً به صورت دستی متن را انتخاب و کپی کنید.");
+                }
+            } catch (err) {
+                alert("مرورگر شما اجازه کپی کردن را نمی‌دهد.");
+            }
+            document.body.removeChild(textarea);
+        }
+
+        function showSuccess(btn) {
+            let originalText = btn.innerText;
+            btn.innerText = "✅ کپی شد!";
+            btn.style.background = "#00b894";
+            setTimeout(() => {
+                btn.innerText = originalText;
+                btn.style.background = "#6c5ce7";
+            }, 1500);
+        }
+    </script>
+</body>
+</html>
