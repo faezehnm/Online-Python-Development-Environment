@@ -77,7 +77,7 @@
 
         @media (min-width: 769px) {
             .main-layout {
-                flex-direction: row-reverse; /* صفحه کد به چپ و خروجی به راست می‌رود */
+                flex-direction: row-reverse; /* صفحه کد در چپ و خروجی در راست */
             }
         }
 
@@ -143,6 +143,31 @@
         }
         .sugg-btn:active { transform: scale(0.95); background: #a29bfe; }
 
+        /* بخش شماره خطوط و ویرایشگر */
+        .editor-wrapper {
+            display: flex;
+            direction: ltr;
+            flex: 1;
+            overflow: hidden;
+            background-color: transparent;
+        }
+
+        .line-numbers {
+            width: 40px;
+            min-width: 40px;
+            padding: 12px 5px;
+            background: #f8f9fa;
+            color: #a4b0be;
+            font-family: "Courier New", monospace;
+            font-size: 15px;
+            line-height: 1.5;
+            text-align: center;
+            border-right: 1px solid #dfe4ea;
+            user-select: none;
+            overflow-y: hidden;
+            box-sizing: border-box;
+        }
+
         textarea {
             flex: 1;
             font-family: "Courier New", monospace;
@@ -155,6 +180,9 @@
             direction: ltr;
             text-align: left;
             line-height: 1.5;
+            white-space: pre;
+            overflow: auto;
+            box-sizing: border-box;
         }
         textarea:focus { outline: none; }
         textarea::placeholder { color: #b2bec3; }
@@ -330,7 +358,6 @@
         </div>
     </div>
 
-    <!-- لفاف سراسری برای ساختار دو ستونه -->
     <div class="main-layout">
         
         <!-- ستون مربوط به ادیتور کد و دکمه‌ها -->
@@ -338,12 +365,15 @@
             <div class="editor-container">
                 <div class="editor-header">💻 صفحه کد</div>
                 <div id="suggestion-bar"></div>
-                <textarea id="code" 
-                          autocapitalize="none" 
-                          autocorrect="off" 
-                          autocomplete="off" 
-                          spellcheck="false" 
-                          placeholder="# کدهای پایتون خود را اینجا بنویسید..."></textarea>
+                <div class="editor-wrapper">
+                    <div class="line-numbers" id="lineNumbers">1</div>
+                    <textarea id="code" 
+                              autocapitalize="none" 
+                              autocorrect="off" 
+                              autocomplete="off" 
+                              spellcheck="false" 
+                              placeholder="# کدهای پایتون خود را اینجا بنویسید..."></textarea>
+                </div>
             </div>
             
             <div class="btn-container">
@@ -408,6 +438,20 @@
 
         const textarea = document.getElementById('code');
         const suggestionBar = document.getElementById('suggestion-bar');
+        const lineNumbers = document.getElementById('lineNumbers');
+
+        function updateLineNumbers() {
+            const linesCount = textarea.value.split('\n').length;
+            let numbersHtml = '';
+            for (let i = 1; i <= linesCount; i++) {
+                numbersHtml += i + '<br>';
+            }
+            lineNumbers.innerHTML = numbersHtml;
+        }
+
+        textarea.addEventListener('scroll', () => {
+            lineNumbers.scrollTop = textarea.scrollTop;
+        });
 
         function updateSuggestions() {
             let cursor = textarea.selectionStart;
@@ -450,10 +494,14 @@
             
             textarea.selectionStart = textarea.selectionEnd = newCursor;
             suggestionBar.innerHTML = '';
+            updateLineNumbers();
             textarea.focus();
         }
 
-        textarea.addEventListener('input', updateSuggestions);
+        textarea.addEventListener('input', () => {
+            updateSuggestions();
+            updateLineNumbers();
+        });
         textarea.addEventListener('keyup', updateSuggestions);
         textarea.addEventListener('click', updateSuggestions);
 
@@ -464,6 +512,7 @@
                 let end = this.selectionEnd;
                 this.value = this.value.substring(0, start) + "    " + this.value.substring(end);
                 this.selectionStart = this.selectionEnd = start + 4;
+                updateLineNumbers();
             }
             const pairs = { '(': ')', '[': ']', '{': '}', '"': '"', "'": "'" };
             if (pairs[e.key]) {
@@ -472,8 +521,11 @@
                 let end = this.selectionEnd;
                 this.value = this.value.substring(0, start) + e.key + pairs[e.key] + this.value.substring(end);
                 this.selectionStart = this.selectionEnd = start + 1;
+                updateLineNumbers();
             }
         });
+
+        updateLineNumbers();
 
         window.setSpeed = function(val) { turtleSpeed = val; };
         window.getTurtleSpeed = function() { return turtleSpeed; };
@@ -970,7 +1022,7 @@ def custom_input(prompt_text=""):
     return user_answer
 builtins.input = custom_input
 
-# 🌟 ذخیره وضعیت متغیرهای گلوبال برای جلوگیری از تداخل اجراها
+# ذخیره وضعیت متغیرهای گلوبال برای جلوگیری از تداخل اجراها
 __protected_globals__ = set(globals().keys()) | {'__protected_globals__'}
                 `);
 
@@ -1023,7 +1075,7 @@ __protected_globals__ = set(globals().keys()) | {'__protected_globals__'}
             pyodideInstance.setStderr({ batched: (msg) => { window.printTerminal(msg + "\n", "error"); } });
 
             try {
-                // 🌟 پاک کردن حافظه متغیرهای ایجاد شده توسط کاربر در دفعات قبلی
+                // پاک کردن حافظه متغیرهای ایجاد شده توسط کاربر در دفعات قبلی
                 await pyodideInstance.runPythonAsync(`
 for k in list(globals().keys()):
     if k not in __protected_globals__:
