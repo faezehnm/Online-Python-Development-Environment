@@ -317,18 +317,6 @@
 
         .terminal-title { color: #a4b0be; font-size: 11px; font-family: Tahoma; }
 
-        .terminal-download-btn {
-            background: rgba(85, 239, 196, 0.15);
-            color: #55efc4;
-            border: 1px solid #55efc4;
-            border-radius: 8px;
-            padding: 2px 8px;
-            font-size: 11px;
-            font-weight: bold;
-            cursor: pointer;
-            font-family: Tahoma;
-        }
-        
         pre {
             flex: 1;
             font-family: "Courier New", monospace;
@@ -346,6 +334,35 @@
         .text-input { color: #ff9ff3; font-weight: bold; }
         .text-error { color: #ff6b81; }
         .text-system { color: #7bed9f; font-family: Tahoma; text-align: right; display: block; margin-bottom: 5px;}
+
+        .assignment-card {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 8px;
+            margin-bottom: 8px;
+            padding: 10px;
+            background: rgba(255,255,255,.88);
+            border: 1px solid rgba(255,255,255,.9);
+            border-radius: 14px;
+            box-shadow: 0 4px 12px rgba(0,0,0,.06);
+        }
+        .assignment-card label { display: flex; flex-direction: column; gap: 5px; font-size: 11px; font-weight: bold; color: #4a4a4a; }
+        .assignment-card input, .assignment-card select {
+            width: 100%; min-width: 0; box-sizing: border-box; padding: 8px;
+            border: 1px solid #dfe4ea; border-radius: 8px; background: #fff;
+            font: inherit; color: #2d3436;
+        }
+        #submitBtn {
+            width: 100%; margin-bottom: 8px; padding: 11px; border: 0; border-radius: 13px;
+            background: linear-gradient(135deg, #00b894, #00a383); color: #fff;
+            font: bold 14px Tahoma, sans-serif; cursor: pointer;
+        }
+        #submitBtn:disabled { opacity: .55; cursor: not-allowed; }
+        @media (max-width: 768px) {
+            body { height: auto; min-height: 100vh; }
+            .assignment-card { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .main-layout { min-height: 75vh; }
+        }
     </style>
 </head>
 <body>
@@ -357,6 +374,21 @@
             <div class="header-sub">متوسطه دوره اول دخترانه مفید</div>
         </div>
     </div>
+
+    <section class="assignment-card" aria-label="مشخصات تحویل">
+        <label>نوع کار
+            <select id="workType">
+                <option value="practice">تمرین</option>
+                <option value="homework">تکلیف</option>
+            </select>
+        </label>
+        <label><span id="firstStudentLabel">نام دانش‌آموز اول</span>
+            <input id="studentOne" type="text" maxlength="60" placeholder="نام و نام خانوادگی">
+        </label>
+        <label id="secondStudentField">نام دانش‌آموز دوم
+            <input id="studentTwo" type="text" maxlength="60" placeholder="نام و نام خانوادگی">
+        </label>
+    </section>
 
     <div class="main-layout">
         
@@ -380,6 +412,7 @@
                 <button id="runBtn" onclick="runPython()" disabled>⏳ در حال راه‌اندازی...</button>
                 <button id="stopBtn" onclick="stopExecution()">🛑 توقف</button>
             </div>
+            <button id="submitBtn" onclick="downloadSubmission()" disabled>📦 آماده‌کردن پروندهٔ تحویل</button>
         </div>
 
         <!-- ستون مربوط به خروجی‌ها (ترتل و ترمینال) -->
@@ -410,9 +443,6 @@
                             <div class="dot green"></div>
                         </div>
                         <div class="terminal-title">صفحه نمایش</div>
-                        <div style="display: flex; gap: 6px; align-items: center;">
-                            <button class="terminal-download-btn" onclick="downloadSnapshot()">📸 عکس</button>
-                        </div>
                     </div>
                     <pre id="output"></pre>
                 </div>
@@ -428,6 +458,7 @@
         let turtleSpeed = 5; 
         let isRunning = false;
         let isCancelled = false;
+        let lastRun = null;
 
         const pythonKeywords = [
             'turtle.forward()', 'turtle.backward()', 'turtle.right()', 'turtle.left()', 
@@ -499,9 +530,21 @@
         }
 
         textarea.addEventListener('input', () => {
+            lastRun = null;
+            document.getElementById('submitBtn').disabled = true;
             updateSuggestions();
             updateLineNumbers();
         });
+        function updateSubmissionFields() {
+            const isHomework = document.getElementById('workType').value === 'homework';
+            document.getElementById('secondStudentField').style.display = isHomework ? 'none' : 'flex';
+            document.getElementById('firstStudentLabel').textContent = isHomework ? 'نام دانش‌آموز' : 'نام دانش‌آموز اول';
+            document.getElementById('submitBtn').textContent = isHomework
+                ? '📦 آماده‌کردن پروندهٔ تحویل تکلیف'
+                : '📦 آماده‌کردن پروندهٔ تحویل تمرین گروهی';
+        }
+        document.getElementById('workType').addEventListener('change', updateSubmissionFields);
+        updateSubmissionFields();
         textarea.addEventListener('keyup', updateSuggestions);
         textarea.addEventListener('click', updateSuggestions);
 
@@ -766,6 +809,49 @@
             return answer === null ? "" : answer;
         };
 
+        function getFileBaseName() {
+            const safe = value => value.trim().replace(/[\\/:*?"<>|]/g, '-').replace(/\s+/g, '-').slice(0, 40);
+            const isHomework = document.getElementById('workType').value === 'homework';
+            const studentNames = [document.getElementById('studentOne').value];
+            if (!isHomework) studentNames.push(document.getElementById('studentTwo').value);
+            const names = studentNames.map(safe).filter(Boolean);
+            return `${isHomework ? 'تکلیف' : 'تمرین'}-${names.join('-') || 'دانش‌آموز'}`;
+        }
+
+        function escapeHtml(value) {
+            return String(value).replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+        }
+
+        window.downloadSubmission = function() {
+            const isHomework = document.getElementById('workType').value === 'homework';
+            const firstName = document.getElementById('studentOne').value.trim();
+            const secondName = document.getElementById('studentTwo').value.trim();
+            if (!firstName || (!isHomework && !secondName)) {
+                alert(isHomework ? 'لطفاً نام دانش‌آموز را وارد کنید.' : 'لطفاً نام هر دو عضو گروه را وارد کنید.');
+                return;
+            }
+            if (!lastRun || !lastRun.ran) {
+                alert('ابتدا کد را یک‌بار اجرا کنید تا پروندهٔ تحویل آماده شود.');
+                return;
+            }
+            const canvas = document.getElementById('turtleCanvas');
+            const image = lastRun.success && lastRun.turtle && canvas ? canvas.toDataURL('image/png') : '';
+            const output = document.getElementById('output').innerText;
+            const studentNames = isHomework ? firstName : `${firstName} و ${secondName}`;
+            const workLabel = isHomework ? 'تکلیف' : 'تمرین گروهی';
+            const resultTitle = lastRun.success ? 'خروجی برنامه' : 'خطای اجرا';
+            const report = `<!doctype html><html lang="fa" dir="rtl"><meta charset="utf-8"><title>پروندهٔ تحویل</title><style>body{font:16px Tahoma,sans-serif;max-width:1000px;margin:30px auto;padding:0 18px;color:#263238}h1,h2{color:#6c5ce7}pre{direction:ltr;text-align:left;white-space:pre-wrap;background:#1e1e2f;color:#f1f2f6;padding:16px;border-radius:10px;overflow:auto}img{max-width:100%;border:1px solid #ddd;border-radius:10px}.meta{background:#f4f2ff;padding:12px;border-radius:10px}</style><h1>پروندهٔ تحویل پایتون</h1><div class="meta"><p><b>نوع کار:</b> ${workLabel}</p><p><b>${isHomework ? 'نام دانش‌آموز' : 'اعضای گروه'}:</b> ${escapeHtml(studentNames)}</p><p><b>زمان تحویل:</b> ${escapeHtml(new Date().toLocaleString('fa-IR'))}</p></div>${image ? `<h2>تصویر ترسیم ترتل</h2><img alt="تصویر نتیجه" src="${image}">` : ''}<h2>کد پایتون</h2><pre>${escapeHtml(document.getElementById('code').value)}</pre><h2>${resultTitle}</h2><pre>${escapeHtml(output || (lastRun.success ? 'خروجی متنی ندارد.' : 'متن خطا در دسترس نیست.'))}</pre></html>`;
+            const blob = new Blob([report], {type: 'text/html;charset=utf-8'});
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `${getFileBaseName()}.html`;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+        };
+
         async function initPyodide() {
             try {
                 pyodideInstance = await loadPyodide({ indexURL: "./pyodide/" });
@@ -1028,6 +1114,7 @@ __protected_globals__ = set(globals().keys()) | {'__protected_globals__'}
 
                 document.getElementById("runBtn").innerText = "🚀 اجرای کد";
                 document.getElementById("runBtn").disabled = false;
+                document.getElementById("submitBtn").disabled = false;
 
             } catch (err) {
                 document.getElementById("output").innerHTML = "";
@@ -1041,6 +1128,9 @@ __protected_globals__ = set(globals().keys()) | {'__protected_globals__'}
             if (isRunning) return;
             isRunning = true;
             isCancelled = false;
+            lastRun = null;
+            document.getElementById('submitBtn').disabled = true;
+            textarea.disabled = true;
 
             document.getElementById('runBtn').disabled = true;
             document.getElementById('runBtn').innerText = "⏳ در حال اجرا...";
@@ -1084,13 +1174,17 @@ for k in list(globals().keys()):
                 
                 await pyodideInstance.loadPackagesFromImports(code);
                 await pyodideInstance.runPythonAsync(code);
+                lastRun = {ran: true, success: true, turtle: usesTurtle};
             } catch (err) {
+                lastRun = {ran: true, success: false, turtle: usesTurtle};
                 if (isCancelled) {
                     window.printTerminal("\n⚠️ برنامه توسط کاربر متوقف شد.\n", "error");
                 } else {
                     window.printTerminal("❌ خطای برنامه‌نویسی:\n" + err, "error"); 
                 }
             } finally {
+                document.getElementById('submitBtn').disabled = !lastRun || !lastRun.ran;
+                textarea.disabled = false;
                 isRunning = false;
                 isCancelled = false;
                 document.getElementById('runBtn').disabled = false;
@@ -1099,139 +1193,6 @@ for k in list(globals().keys()):
             }
         };
 
-        window.downloadSnapshot = function() {
-            let codeText = document.getElementById("code").value;
-            let outputText = document.getElementById("output").innerText;
-            let usesTurtle = /\bimport\s+turtle\b/.test(codeText);
-
-            let codeLines = codeText.split('\n');
-            let outputLines = outputText.split('\n');
-
-            let paddingTop = 120;
-            let codeBoxHeight = Math.max(150, codeLines.length * 32 + 60);
-            let gap = 40;
-            
-            let turtleHeaderHeight = usesTurtle ? 45 : 0;
-            let turtleBoxHeight = usesTurtle ? 350 : 0;
-            
-            let terminalHeaderHeight = 45;
-            let terminalBoxHeight = Math.max(150, outputLines.length * 26 + 60);
-            let paddingBottom = 60;
-
-            let totalHeight = paddingTop + codeBoxHeight + (usesTurtle ? (gap + turtleHeaderHeight + turtleBoxHeight) : 0) + gap + terminalHeaderHeight + terminalBoxHeight + paddingBottom;
-            let totalWidth = 1000;
-
-            let canvas = document.createElement('canvas');
-            canvas.width = totalWidth * 2;
-            canvas.height = totalHeight * 2;
-            let ctx = canvas.getContext('2d');
-            ctx.scale(2, 2);
-
-            let bgGrad = ctx.createLinearGradient(0, 0, 0, totalHeight);
-            bgGrad.addColorStop(0, '#fbc2eb');
-            bgGrad.addColorStop(1, '#a6c1ee');
-            ctx.fillStyle = bgGrad;
-            ctx.fillRect(0, 0, totalWidth, totalHeight);
-
-            ctx.fillStyle = '#4a4a4a';
-            ctx.font = 'bold 24px Tahoma';
-            ctx.textAlign = 'center';
-            ctx.fillText('✨ کلاس کدنوردی | دبیرستان دخترانه مفید ✨', totalWidth / 2, 50);
-
-            let codeBoxY = 80;
-            ctx.fillStyle = '#ffffff';
-            ctx.shadowColor = 'rgba(0,0,0,0.15)';
-            ctx.shadowBlur = 15;
-            ctx.beginPath();
-            ctx.roundRect(60, codeBoxY, 880, codeBoxHeight, 16);
-            ctx.fill();
-            ctx.shadowBlur = 0;
-
-            ctx.fillStyle = '#6c5ce7';
-            ctx.font = 'bold 16px Tahoma';
-            ctx.textAlign = 'right';
-            ctx.fillText('💻 کدهای پایتون:', 900, codeBoxY + 32);
-
-            ctx.fillStyle = '#2d3436';
-            ctx.font = '15px "Courier New", monospace';
-            ctx.textAlign = 'left';
-            let y = codeBoxY + 68;
-            for (let i = 0; i < codeLines.length; i++) {
-                ctx.fillText(codeLines[i], 90, y);
-                y += 32;
-            }
-
-            let currentY = codeBoxY + codeBoxHeight + gap;
-
-            if (usesTurtle) {
-                ctx.fillStyle = '#ffffff';
-                ctx.shadowColor = 'rgba(0,0,0,0.15)';
-                ctx.shadowBlur = 15;
-                ctx.beginPath();
-                ctx.roundRect(60, currentY, 880, turtleHeaderHeight + turtleBoxHeight, 16);
-                ctx.fill();
-                ctx.shadowBlur = 0;
-
-                ctx.fillStyle = '#f1f2f6';
-                ctx.beginPath();
-                ctx.roundRect(60, currentY, 880, turtleHeaderHeight, [16, 16, 0, 0]);
-                ctx.fill();
-
-                ctx.fillStyle = '#4a4a4a';
-                ctx.font = 'bold 14px Tahoma';
-                ctx.textAlign = 'right';
-                ctx.fillText('🐢 صفحه نمایش Turtle', 910, currentY + 28);
-
-                let turtleEl = document.getElementById('turtleCanvas');
-                if (turtleEl) {
-                    ctx.drawImage(turtleEl, 90, currentY + turtleHeaderHeight + 15, 820, turtleBoxHeight - 30);
-                }
-
-                currentY += turtleHeaderHeight + turtleBoxHeight + gap;
-            }
-
-            ctx.fillStyle = '#1e1e2f';
-            ctx.shadowColor = 'rgba(0,0,0,0.25)';
-            ctx.shadowBlur = 20;
-            ctx.beginPath();
-            ctx.roundRect(60, currentY, 880, terminalHeaderHeight + terminalBoxHeight, 16);
-            ctx.fill();
-            ctx.shadowBlur = 0;
-
-            ctx.fillStyle = '#2a2a40';
-            ctx.beginPath();
-            ctx.roundRect(60, currentY, 880, terminalHeaderHeight, [16, 16, 0, 0]);
-            ctx.fill();
-            
-            ctx.fillStyle = '#ff5f56'; ctx.beginPath(); ctx.arc(95, currentY + 22, 6, 0, Math.PI * 2); ctx.fill();
-            ctx.fillStyle = '#ffbd2e'; ctx.beginPath(); ctx.arc(120, currentY + 22, 6, 0, Math.PI * 2); ctx.fill();
-            ctx.fillStyle = '#27c93f'; ctx.beginPath(); ctx.arc(145, currentY + 22, 6, 0, Math.PI * 2); ctx.fill();
-
-            ctx.fillStyle = '#a4b0be';
-            ctx.font = '13px Tahoma';
-            ctx.textAlign = 'right';
-            ctx.fillText('صفحه نمایش', 910, currentY + 27);
-
-            ctx.fillStyle = '#f1f2f6';
-            ctx.font = '14px "Courier New", monospace';
-            ctx.textAlign = 'left';
-            y = currentY + terminalHeaderHeight + 35;
-            for (let i = 0; i < outputLines.length; i++) {
-                ctx.fillText(outputLines[i], 90, y);
-                y += 26;
-            }
-
-            canvas.toBlob(function(blob) {
-                let url = URL.createObjectURL(blob);
-                let link = document.createElement('a');
-                link.href = url;
-                link.download = 'code-result.png';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                URL.revokeObjectURL(url);
-            }, 'image/png');
-        };
     </script>
 </body>
 </html>
